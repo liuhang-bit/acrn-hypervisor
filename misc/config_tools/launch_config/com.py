@@ -372,7 +372,8 @@ def launch_end(names, args, virt_io, vmid, config):
             i += 1
 
     sos_vmid = launch_cfg_lib.get_sos_vmid()
-    if args['cpu_sharing'] == "SCHED_NOOP" or common.VM_TYPES[vmid+sos_vmid] == "POST_RT_VM":
+    if args['cpu_sharing'] == "SCHED_NOOP" or \
+        (common.LOAD_ORDER[vmid+sos_vmid] == "POST_LAUNCHED_VM" and common.RTVM[vmid+sos_vmid] == "RTVM"):
         off_line_cpus(args, vmid, user_vm_type, config)
 
     user_vm_launch(names, args, virt_io, vmid, config)

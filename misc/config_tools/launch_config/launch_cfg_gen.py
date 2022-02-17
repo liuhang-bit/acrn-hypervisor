@@ -68,7 +68,7 @@ def validate_launch_setting(board_info, scenario_info, launch_info):
     :return: return a dictionary contain errors
     """
     common.SCENARIO_INFO_FILE = scenario_info
-    common.get_vm_types()
+    common.get_load_order()
 
     launch_cfg_lib.ERR_LIST = {}
     common.BOARD_INFO_FILE = board_info
@@ -180,7 +180,8 @@ def main(args):
     common.BOARD_INFO_FILE = board_info_file
     common.SCENARIO_INFO_FILE = scenario_info_file
     common.LAUNCH_INFO_FILE = launch_info_file
-    common.get_vm_types()
+    common.get_load_order()
+    common.get_RTVM()
 
     # get post vm dic
     post_num_list = launch_cfg_lib.get_post_num_list()
