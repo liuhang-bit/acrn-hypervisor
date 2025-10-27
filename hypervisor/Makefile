@@ -159,6 +159,7 @@ endif
 COMMON_C_SRCS += common/sbuf.c
 COMMON_C_SRCS += common/logmsg.c
 COMMON_C_SRCS += common/irq.c
+COMMON_C_SRCS += common/stg2_mm.c
 
 # library componment
 COMMON_C_SRCS += lib/memory.c
