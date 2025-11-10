@@ -129,6 +129,8 @@ int32_t arch_init_vcpu(struct acrn_vcpu *vcpu)
 	/* Delegate VS interrupts */
 	hctx->hideleg = HIDELEG_DEFAULT;
 
+	/* program stage2 memory translation */
+	hctx->hgatp = vcpu->vm->arch_vm.hgatp;
 	/*
 	 * SPVP & SPV: sret to vs mode
 	 */
@@ -193,6 +195,7 @@ void arch_context_switch_in(struct thread_object *next)
 {
 	struct acrn_vcpu *vcpu = container_of(next, struct acrn_vcpu, thread_obj);
 	load_vcpu(vcpu);
+	flush_guest_gtlb_local();
 }
 
 uint64_t arch_build_stack_frame(struct acrn_vcpu *vcpu)
