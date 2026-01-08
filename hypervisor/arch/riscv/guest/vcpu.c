@@ -19,6 +19,7 @@
 #include <asm/guest/vcpu_priv.h>
 #include <asm/guest/vsbi.h>
 #include <asm/guest/virq.h>
+#include <asm/guest/s2pt.h>
 
 void vcpu_set_epc(struct acrn_vcpu *vcpu, uint64_t val)
 {

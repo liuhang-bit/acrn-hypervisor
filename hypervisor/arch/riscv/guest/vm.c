@@ -16,7 +16,7 @@
 #include <per_cpu.h>
 #include <vfdt.h>
 #include <libfdt.h>
-
+#include <stg2_mm.h>
 #include <asm/guest/vcpu_priv.h>
 
 uint32_t vcpu_get_vhartid(struct acrn_vcpu *vcpu)
@@ -49,6 +49,8 @@ struct acrn_vcpu *vcpu_from_vhartid(struct acrn_vm *vm, uint32_t vhartid)
 	return vcpu;
 }
 
+#define SERVICE_VM_MAX_GPA  0x280000000   //0x100000000
+/*TODO: hard code memory entry here, need to generate common entry data from virtual memory map, eg. dts */
 int32_t arch_init_vm(struct acrn_vm *vm, struct acrn_vm_config *vm_config)
 {
 	init_vsbi(vm);
@@ -56,7 +58,39 @@ int32_t arch_init_vm(struct acrn_vm *vm, struct acrn_vm_config *vm_config)
 	(void)vm_config;
 
 	if (is_service_vm(vm)) {
+
+		uint64_t hv_hpa, hv_size;
 		init_service_vm_vfdt(vm);
+
+
+		stg2pt_add_mr(vm, (uint64_t *)vm->root_stg2ptp, 0, 0,
+						SERVICE_VM_MAX_GPA, PAGE_V | PAGE_R | PAGE_W | PAGE_U | PAGE_X);
+
+		hv_hpa = hva2hpa((void *)(get_hv_image_base()));
+		hv_size = get_hv_image_size();
+
+		stg2pt_del_mr(vm, (uint64_t *)vm->root_stg2ptp, hv_hpa, hv_size);
+
+		for (uint16_t vmid = 0; vmid < CONFIG_MAX_VM_NUM; vmid++) {
+			vm_config = get_vm_config(vmid);
+			if (vm_config->load_order == PRE_LAUNCHED_VM) {
+				for (uint16_t i = 0; i < vm_config->memory.region_num; i++) {
+					stg2pt_del_mr(vm, (uint64_t *)vm->root_stg2ptp, vm_config->memory.host_regions[i].start_hpa,
+						       vm_config->memory.host_regions[i].size_hpa);
+				}
+			}
+		}
+
+	} else if (is_prelaunched_vm(vm)) {
+		uint64_t hpa, size, gpa;
+		/*TODO: only support one segment of prelauch vm hpa for now */
+		hpa = get_vm_config(vm->vm_id)->memory.host_regions[0].start_hpa;
+		size = get_vm_config(vm->vm_id)->memory.host_regions[0].size_hpa;
+		gpa = 0;
+		stg2pt_add_mr(vm, (uint64_t *)vm->root_stg2ptp, hpa, gpa,
+				size, PAGE_V | PAGE_R | PAGE_W | PAGE_U | PAGE_X);
+	} else {
+
 	}
 
 	return 0;
